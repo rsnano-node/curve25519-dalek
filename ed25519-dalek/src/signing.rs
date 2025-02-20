@@ -15,11 +15,12 @@ use core::fmt::Debug;
 use ed25519::pkcs8;
 
 #[cfg(any(test, feature = "rand_core"))]
-use rand_core::CryptoRngCore;
+use rand_core::CryptoRng;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use blake2::Blake2b;
 use sha2::Sha512;
 use subtle::{Choice, ConstantTimeEq};
 
@@ -199,7 +200,7 @@ impl SigningKey {
     ///
     /// A CSPRNG with a `fill_bytes()` method, e.g. `rand_os::OsRng`.
     #[cfg(any(test, feature = "rand_core"))]
-    pub fn generate<R: CryptoRngCore + ?Sized>(csprng: &mut R) -> SigningKey {
+    pub fn generate<R: CryptoRng + ?Sized>(csprng: &mut R) -> SigningKey {
         let mut secret = SecretKey::default();
         csprng.fill_bytes(&mut secret);
         Self::from_bytes(&secret)
@@ -315,7 +316,7 @@ impl SigningKey {
     where
         MsgDigest: Digest<OutputSize = U64>,
     {
-        ExpandedSecretKey::from(&self.secret_key).raw_sign_prehashed::<Sha512, MsgDigest>(
+        ExpandedSecretKey::from(&self.secret_key).raw_sign_prehashed::<Blake2b<U64>, MsgDigest>(
             prehashed_message,
             &self.verifying_key,
             context,
@@ -513,7 +514,9 @@ impl SigningKey {
         // where the two outputs are both 32 bytes. scalar_bytes is what we return. Its clamped and
         // reduced form is what we use for signing (see impl ExpandedSecretKey)
         let mut buf = [0u8; 32];
-        let scalar_and_hash_prefix = Sha512::default().chain_update(self.secret_key).finalize();
+        let scalar_and_hash_prefix = Blake2b::<U64>::default()
+            .chain_update(self.secret_key)
+            .finalize();
         buf.copy_from_slice(&scalar_and_hash_prefix[..32]);
         buf
     }
@@ -565,7 +568,7 @@ impl Signer<Signature> for SigningKey {
     /// Sign a message with this signing key's secret key.
     fn try_sign(&self, message: &[u8]) -> Result<Signature, SignatureError> {
         let expanded: ExpandedSecretKey = (&self.secret_key).into();
-        Ok(expanded.raw_sign::<Sha512>(message, &self.verifying_key))
+        Ok(expanded.raw_sign::<Blake2b<U64>>(message, &self.verifying_key))
     }
 }
 
@@ -809,7 +812,9 @@ impl<'d> Deserialize<'d> for SigningKey {
 impl From<&SecretKey> for ExpandedSecretKey {
     #[allow(clippy::unwrap_used)]
     fn from(secret_key: &SecretKey) -> ExpandedSecretKey {
-        let hash = Sha512::default().chain_update(secret_key).finalize();
+        let hash = Blake2b::<U64>::default()
+            .chain_update(secret_key)
+            .finalize();
         ExpandedSecretKey::from_bytes(hash.as_ref())
     }
 }

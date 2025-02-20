@@ -21,6 +21,7 @@ use curve25519_dalek::{
 
 use ed25519::signature::Verifier;
 
+use blake2::Blake2b;
 use sha2::Sha512;
 
 #[cfg(feature = "pkcs8")]
@@ -288,7 +289,7 @@ impl VerifyingKey {
     where
         MsgDigest: Digest<OutputSize = U64>,
     {
-        self.raw_verify_prehashed::<Sha512, MsgDigest>(prehashed_message, context, signature)
+        self.raw_verify_prehashed::<Blake2b<U64>, MsgDigest>(prehashed_message, context, signature)
     }
 
     /// Strictly verify a signature on a message with this keypair's public key.
@@ -371,7 +372,7 @@ impl VerifyingKey {
             return Err(InternalError::Verify.into());
         }
 
-        let expected_R = RCompute::<Sha512>::compute(self, signature, None, message);
+        let expected_R = RCompute::<Blake2b<U64>>::compute(self, signature, None, message);
         if expected_R == signature.R {
             Ok(())
         } else {
@@ -447,7 +448,7 @@ impl VerifyingKey {
         }
 
         let message = prehashed_message.finalize();
-        let expected_R = RCompute::<Sha512>::compute(self, signature, Some(ctx), &message);
+        let expected_R = RCompute::<Blake2b<U64>>::compute(self, signature, Some(ctx), &message);
 
         if expected_R == signature.R {
             Ok(())
@@ -561,7 +562,7 @@ impl Verifier<ed25519::Signature> for VerifyingKey {
     ///
     /// Returns `Ok(())` if the signature is valid, and `Err` otherwise.
     fn verify(&self, message: &[u8], signature: &ed25519::Signature) -> Result<(), SignatureError> {
-        self.raw_verify::<Sha512>(message, signature)
+        self.raw_verify::<Blake2b<U64>>(message, signature)
     }
 }
 

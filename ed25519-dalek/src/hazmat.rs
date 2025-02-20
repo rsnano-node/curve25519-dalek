@@ -278,7 +278,7 @@ mod test {
     #[test]
     fn sign_verify_nonspec() {
         // Generate the keypair
-        let rng = OsRng;
+        let rng = rand::rng();
         let esk = ExpandedSecretKey::random(rng);
         let vk = VerifyingKey::from(&esk);
 

@@ -25,6 +25,8 @@ use merlin::Transcript;
 
 use rand_core::RngCore;
 
+use blake2::Blake2b;
+
 use sha2::Sha512;
 
 use crate::errors::InternalError;
@@ -172,7 +174,7 @@ pub fn verify_batch(
             // R = sig.R
             // A = verifying key
             // M = msg
-            let mut h: Sha512 = Sha512::default();
+            let mut h: Blake2b<U64> = Blake2b::default();
             h.update(signatures[i].r_bytes());
             h.update(verifying_keys[i].as_bytes());
             h.update(messages[i]);

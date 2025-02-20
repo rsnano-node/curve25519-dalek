@@ -180,7 +180,7 @@ mod vectors {
 
     // Pick a random Scalar
     fn non_null_scalar() -> Scalar {
-        let mut rng = rand::rngs::OsRng;
+        let mut rng = rand::rng();
         let mut s_candidate = Scalar::random(&mut rng);
         while s_candidate == Scalar::ZERO {
             s_candidate = Scalar::random(&mut rng);

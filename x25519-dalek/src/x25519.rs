@@ -346,11 +346,11 @@ impl AsRef<[u8]> for SharedSecret {
 /// use x25519_dalek::PublicKey;
 ///
 /// // Generate Alice's key pair.
-/// let alice_secret = StaticSecret::random_from_rng(&mut OsRng);
+/// let alice_secret = StaticSecret::random_from_rng(&mut rand::rng());
 /// let alice_public = PublicKey::from(&alice_secret);
 ///
 /// // Generate Bob's key pair.
-/// let bob_secret = StaticSecret::random_from_rng(&mut OsRng);
+/// let bob_secret = StaticSecret::random_from_rng(&mut rand::rng());
 /// let bob_public = PublicKey::from(&bob_secret);
 ///
 /// // Alice and Bob should now exchange their public keys.

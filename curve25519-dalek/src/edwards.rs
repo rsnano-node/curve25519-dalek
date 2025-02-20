@@ -1913,7 +1913,7 @@ mod test {
     /// Check that mul_base_clamped and mul_clamped agree
     #[test]
     fn mul_base_clamped() {
-        let mut csprng = rand_core::OsRng;
+        let mut csprng = rand::rng();
 
         // Make a random curve point in the curve. Give it torsion to make things interesting.
         #[cfg(feature = "precomputed-tables")]
@@ -2061,7 +2061,7 @@ mod test {
     // A single iteration of a consistency check for MSM.
     #[cfg(feature = "alloc")]
     fn multiscalar_consistency_iter(n: usize) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Construct random coefficients x0, ..., x_{n-1},
         // followed by some extra hardcoded ones.
@@ -2124,7 +2124,7 @@ mod test {
     #[test]
     #[cfg(feature = "alloc")]
     fn vartime_precomputed_vs_nonprecomputed_multiscalar() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let static_scalars = (0..128)
             .map(|_| Scalar::random(&mut rng))
